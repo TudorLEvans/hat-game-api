@@ -1,0 +1,114 @@
+{
+    "createSession" : {
+        "query": "INSERT INTO sessions (sessionId) VALUES (?);",
+        "type":"success",        
+        "method":"run"
+    },
+    "createLogin" : {
+        "query": "INSERT INTO players (sessionId,username,inSession) VALUES (?,?,FALSE);",
+        "type":"success",
+        "method":"run"
+    },
+    "checkLogin" : {
+        "query": "SELECT userId, sessionId,username FROM players WHERE sessionId = ? AND username = ? ;",
+        "type":"singleRow",
+        "method":"get"
+    },
+    "checkSession" : {
+        "query": "SELECT sessionId FROM sessions WHERE sessionId = ?;",
+        "type":"singleRow",
+        "method":"get"
+    },
+    "updatePlayerStatus" : {
+        "query": "UPDATE players SET inSession = TRUE WHERE sessionId = ? AND userId = ?;",
+        "type":"success",
+        "method":"run"
+    },
+    "getPlayersInSession" : {
+        "query": "SELECT * FROM players WHERE sessionId = ? AND inSession = TRUE;",
+        "type":"rows",        
+        "method":"get"
+    },
+    "updatePlayerTeam" : {
+        "query": "UPDATE players SET team = ? WHERE sessionId = ? AND userId = ? AND inSession = TRUE;",
+        "type":"success",        
+        "method":"run"
+    },
+    "createHatItems" : {
+        "query": "INSERT INTO hat (sessionId,userId,itemText) VALUES (?,?,?);",
+        "type":"success",        
+        "method":"run"
+    },
+    "updateCreatedItems" : {
+        "query": "UPDATE players SET createdItems = ? WHERE userId = ?",
+        "type":"success",        
+        "method":"run"
+    },
+    "checkHatIsFull" : {
+        "query": "SELECT NOT EXISTS (SELECT * FROM users WHERE createdItems = FALSE AND sessionId = ? AND inSession = TRUE);",
+        "type":"singleRow",        
+        "method":"get"
+    },
+    "getSessionInfo" : {
+        "query": "SELECT * FROM sessions WHERE sessionId = ?;",
+        "type":"singleRow",        
+        "method":"get"
+    },
+    "getCurrentTeam" : {
+        "query": "SELECT team FROM sessions WHERE sessionId = ?;",
+        "type":"singleRow",        
+        "method":"get"
+    },
+    "getWhoseGoItIs" : {
+        "query": "SELECT a.* FROM players a INNER JOIN session b ON a.team = b.currentTeam WHERE a.sessionId = ? AND a.takenTurn = FALSE AND a.inSession = TRUE ORDER BY RANDOM();",
+        "type":"singleRow",        
+        "method":"get"
+    },
+    "updateWhoseGoItIs" : {
+        "query": "UPDATE players SET takenTurn = TRUE WHERE username = ?;IF (SELECT EXISTS (SELECT * FROM players WHERE takenTurn = FALSE AND sessionId = ? AND team = ? AND inSession = TRUE)) = FALSE THEN UPDATE players SET takenTurn = false WHERE sessionId = ? AND team = ?;END IF;",
+        "conversion":[0,1,2,1,2],
+        "type":"success",        
+        "method":"run"
+    },
+    "getItemFromHat" : {
+        "query": "SELECT a.* FROM hat a LEFT JOIN turns b JOIN sessions c ON a.hatId = b.hatId WHERE a.sessionId = ? and b.hatId is null AND c.round = b.round ORDER BY RANDOM();",
+        "type":"singleRow",        
+        "method":"get"
+    },
+    "createTurnRecord" : {
+        "query": "INSERT INTO turns (hatId,userId,round,sessionId,startTime,team) VALUES (?,?,?,?,CURRENT_TIME,?) USING sessions b WHERE b.sessionId = ?;",
+        "conversion":[0,1,2,3,4,3],
+        "type":"success",        
+        "method":"run"
+    },
+    "updateCurrentTeam" : {
+        "query": "UPDATE sessions SET team = ? WHERE sessionId = ?;",
+        "type":"success",        
+        "method":"run"
+    },
+    "updateTurnRecord" : {
+        "query": "UPDATE turns SET endTime = CURRENT_TIME WHERE turnId = ? and sessionId = ?;",
+        "type":"success",        
+        "method":"run"
+    },
+    "updateRedScore" : {
+        "query": "UPDATE sessions SET redScore = ? WHERE sessionId = ?;",
+        "type":"rows",        
+        "method":"run"
+    },
+    "updateBlueScore" : {
+        "query": "UPDATE sessions SET blueScore = ? WHERE sessionId = ?;",
+        "type":"rows",        
+        "method":"run"
+    },
+    "checkRoundComplete" : {
+        "query": "SELECT NOT EXISTS (SELECT a.* FROM hat a LEFT JOIN turns b ON a.hatId = b.hatId WHERE a.sessionId = ? AND round = ? AND b.hatId IS NULL);",
+        "type":"singleRow",        
+        "method":"get"
+    },
+    "updateRound" : {
+        "query": "UPDATE sessions SET round = ? WHERE sessionId = ?;",
+        "type":"success",        
+        "method":"run"
+    }
+}
